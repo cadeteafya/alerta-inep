@@ -1,16 +1,14 @@
 """
 Adaptive Card builder for official INEP editais and portarias (Type 1).
-Color: Blue gov.br (#1351B4)
-Buttons: direct DOU link + fixed INEP editais page link
+Uses the same structure pattern as card_noticia (proven to work).
 """
 
 EDITAIS_PAGE_URL = "https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/revalida"
 
 
-def _detect_type(title: str) -> tuple[str, str]:
+def _detect_type(title: str) -> tuple:
     """Returns (icon, type_label) based on document title."""
-    title_lower = title.lower()
-    if "portaria" in title_lower:
+    if "portaria" in title.lower():
         return "📋", "Portaria Oficial"
     return "🏛️", "Edital Oficial"
 
@@ -32,7 +30,7 @@ def build(title: str, dou_url: str) -> dict:
         "body": [
             {
                 "type": "Container",
-                "style": "emphasis",
+                "style": "accent",
                 "items": [
                     {
                         "type": "TextBlock",
@@ -44,23 +42,17 @@ def build(title: str, dou_url: str) -> dict:
                     }
                 ],
                 "bleed": True,
-                "backgroundImage": {
-                    "fillMode": "Cover",
-                    "horizontalAlignment": "Center",
-                    "verticalAlignment": "Center",
-                    "url": "data:image/png;base64,",  # solid color via style
-                },
-                "style": "accent",
             },
             {
                 "type": "Container",
                 "items": [
                     {
-                        "type": "FactSet",
-                        "facts": [
-                            {"title": "Tipo", "value": type_label},
-                            {"title": "Fonte", "value": "Diário Oficial da União"},
-                        ],
+                        "type": "TextBlock",
+                        "text": type_label.upper(),
+                        "size": "Small",
+                        "weight": "Bolder",
+                        "color": "Accent",
+                        "spacing": "Medium",
                     },
                     {
                         "type": "TextBlock",
@@ -68,7 +60,7 @@ def build(title: str, dou_url: str) -> dict:
                         "wrap": True,
                         "weight": "Bolder",
                         "size": "Medium",
-                        "spacing": "Medium",
+                        "spacing": "Small",
                     },
                 ],
             },

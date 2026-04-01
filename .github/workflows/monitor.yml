@@ -33,10 +33,9 @@ jobs:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: python src/scraper_editais.py
 
-      - name: Run Noticias Scraper (AI-filtered)
+      - name: Run Noticias Scraper (Revalida news page)
         env:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python src/scraper_noticias.py
 
       - name: Commit updated state

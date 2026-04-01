@@ -1,9 +1,13 @@
 """
-Scraper for INEP Revalida official documents page.
-Source: https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/revalida
+Scraper for INEP Revalida official documents.
+Source: https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/revalida/2026
 
-Logic: DETERMINISTIC — any new link in 2026 is a new document. No AI needed.
-State: data/last_seen.json → "editais" list of known hrefs.
+Key finding from debugging:
+- The main /revalida page uses JS tabs; the actual content lives at /revalida/2026
+- Selector: #parent-fieldname-text ul li a.external-link
+
+Logic: DETERMINISTIC — any new href in 2026 = new document. No AI needed.
+State: data/last_seen.json -> "editais" list of known hrefs.
 """
 import json
 import os
@@ -17,13 +21,19 @@ sys.path.insert(0, str(Path(__file__).parent))
 from cards import card_edital
 from notifier import send_card
 
-TARGET_URL = "https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/revalida"
+# Direct URL for the 2026 tab content (server-rendered, no JS needed)
+TARGET_URL = "https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/revalida/2026"
 STATE_FILE = Path(__file__).parent.parent / "data" / "last_seen.json"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/122.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "pt-BR,pt;q=0.9",
-    "Referer": "https://www.gov.br/",
+    "Referer": "https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/revalida",
 }
 
 

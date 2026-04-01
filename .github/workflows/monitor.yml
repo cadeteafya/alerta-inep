@@ -1,0 +1,48 @@
+name: Monitor INEP - Revalida
+
+on:
+  schedule:
+    # Mon-Fri: every hour from 07h to 18h BRT (= 10h to 21h UTC)
+    - cron: '0 10-21 * * 1-5'
+    # Saturday: 12h BRT (= 15h UTC)
+    - cron: '0 15 * * 6'
+    # Sunday: 12h BRT (= 15h UTC)
+    - cron: '0 15 * * 0'
+  workflow_dispatch:  # manual trigger for testing
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # required to commit last_seen.json
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Editais Scraper (deterministic)
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: python src/scraper_editais.py
+
+      - name: Run Noticias Scraper (AI-filtered)
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python src/scraper_noticias.py
+
+      - name: Commit updated state
+        run: |
+          git config user.name "inep-bot"
+          git config user.email "bot@github.com"
+          git add data/last_seen.json
+          git commit -m "chore: update state [skip ci]" || exit 0
+          git push

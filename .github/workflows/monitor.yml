@@ -38,6 +38,11 @@ jobs:
           TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: python src/scraper_noticias.py
 
+      - name: Run ABMES Scraper
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: python src/scraper_abmes.py
+
       - name: Commit updated state
         run: |
           git config user.name "inep-bot"

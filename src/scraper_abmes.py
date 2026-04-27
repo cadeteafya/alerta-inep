@@ -82,10 +82,19 @@ def scrape_abmes() -> list[dict]:
             if down_href:
                 download_url = down_href if down_href.startswith("http") else BASE_URL + down_href
 
+        # Extract summary text
+        summary = ""
+        parent_h = title_el.parent
+        if parent_h:
+            next_div = parent_h.find_next_sibling("div")
+            if next_div and "Baixar arquivo" not in next_div.get_text():
+                summary = next_div.get_text(strip=True)
+
         items.append({
             "title": title,
             "url": href,
-            "download_url": download_url
+            "download_url": download_url,
+            "summary": summary
         })
 
     print(f"[ABMES] Found {len(items)} matching documents on page.")
@@ -125,7 +134,8 @@ def run() -> None:
         card = card_abmes.build(
             title=doc["title"], 
             post_url=doc["url"], 
-            download_url=doc["download_url"]
+            download_url=doc["download_url"],
+            summary=doc.get("summary", "")
         )
         success = send_card(webhook_url, card)
 

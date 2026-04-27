@@ -2,8 +2,8 @@ name: Monitor INEP - Revalida
 
 on:
   schedule:
-    # Mon-Fri: every 30 minutes from 07h to 18h30 BRT (= 10h to 21h30 UTC)
-    - cron: '0,30 10-21 * * 1-5'
+    # Mon-Fri: every 30 minutes from 06h to 18h30 BRT (= 09h to 21h30 UTC)
+    - cron: '0,30 09-21 * * 1-5'
     # Saturday: 12h BRT (= 15h UTC)
     - cron: '0 15 * * 6'
     # Sunday: 12h BRT (= 15h UTC)

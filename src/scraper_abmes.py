@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).parent))
 from cards import card_abmes
+from http_client import build_session
 from notifier import send_card
 
 TARGET_URL = "http://www.abmes.org.br/busca/resultado?pesquisar=EDITAL+INEP"
@@ -50,8 +51,13 @@ def scrape_abmes() -> list[dict]:
     """
     Fetches the ABMES search page and returns structured edital items.
     """
-    response = requests.get(TARGET_URL, headers=HEADERS, timeout=20)
-    response.raise_for_status()
+    session = build_session()
+    try:
+        response = session.get(TARGET_URL, headers=HEADERS, timeout=20)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"[ABMES] Fetch failed after retries: {exc}. Skipping this run.")
+        return []
 
     soup = BeautifulSoup(response.text, "html.parser")
     items = []
@@ -115,11 +121,7 @@ def run() -> None:
     seen = set(state.get("abmes", []))
     new_count = 0
 
-    try:
-        documents = scrape_abmes()
-    except requests.RequestException as e:
-        print(f"[ABMES] Failed to fetch page: {e}")
-        sys.exit(1)
+    documents = scrape_abmes()
 
     # Note: To avoid sending 10+ historical items on the very first run,
     # we might want to populate last_seen manually, but the logic requires 

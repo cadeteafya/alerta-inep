@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).parent))
 from cards import card_edital
+from http_client import build_session
 from notifier import send_card
 
 # Direct URL for the 2026 tab content (server-rendered, no JS needed)
@@ -50,8 +51,13 @@ def save_state(state: dict) -> None:
 
 def scrape_editais() -> list[dict]:
     """Returns list of {'title': str, 'url': str} for all links on the page."""
-    response = requests.get(TARGET_URL, headers=HEADERS, timeout=20)
-    response.raise_for_status()
+    session = build_session()
+    try:
+        response = session.get(TARGET_URL, headers=HEADERS, timeout=20)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"[Editais] Fetch failed after retries: {exc}. Skipping this run.")
+        return []
 
     soup = BeautifulSoup(response.text, "html.parser")
     container = soup.select_one("#parent-fieldname-text")

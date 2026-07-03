@@ -20,6 +20,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).parent))
 from cards import card_noticia
+from http_client import build_session
 from notifier import send_card
 
 # Dedicated Revalida news page — server-rendered, no JS
@@ -56,8 +57,13 @@ def scrape_news_items() -> list[dict]:
     Fetches the Revalida news listing page and returns structured news items.
     Confirmed structure: .conteudo container with .titulo (a), .descricao, .data
     """
-    response = requests.get(TARGET_URL, headers=HEADERS, timeout=20)
-    response.raise_for_status()
+    session = build_session()
+    try:
+        response = session.get(TARGET_URL, headers=HEADERS, timeout=20)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"[Noticias] Fetch failed after retries: {exc}. Skipping this run.")
+        return []
 
     soup = BeautifulSoup(response.text, "html.parser")
     items = []
@@ -107,11 +113,7 @@ def run() -> None:
     seen = set(state.get("noticias", []))
     new_count = 0
 
-    try:
-        items = scrape_news_items()
-    except requests.RequestException as e:
-        print(f"[Noticias] Failed to fetch page: {e}")
-        sys.exit(1)
+    items = scrape_news_items()
 
     for item in items:
         if item["url"] in seen:
